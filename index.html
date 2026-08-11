@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TRADEX | Paper Trading Platform</title>
+  <style>
+    /* ==========================================================================
+       CSS VARIABLES & BASE RESET
+       ========================================================================== */
+    :root {
+      --primary: #387ED1;
+      --primary-dark: #2B65AB;
+      --primary-light: #EBF3FB;
+      --positive: #00B386;
+      --positive-bg: #E6F7F3;
+      --negative: #DF514C;
+      --negative-bg: #FDF2F2;
+      --neutral-grey: #8C98A6;
+      --bg-body: #F4F6F9;
+      --bg-card: #FFFFFF;
+      --text-main: #1F2937;
+      --text-muted: #6B7280;
+      --text-light: #9CA3AF;
+      --border-color: #E5E7EB;
+      --border-light: #F3F4F6;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.12);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --bottom-nav-height: 64px;
+      --header-height: 56px;
+      --sidebar-width: 240px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-body);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D1D5DB;
+      border-radius: 4px;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    button, input, select {
+      font: inherit;
+      outline: none;
+      border: none;
+    }
+
+    button {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    /* ==========================================================================
+       UTILITY CLASSES & TYPOGRAPHY
+       ========================================================================== */
+    .pos { color: var(--positive) !important; }
+    .neg { color: var(--negative) !important; }
+    .bg-pos { background-color: var(--positive-bg); }
+    .bg-neg { background-color: var(--negative-bg); }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .badge-complete { background: var(--positive-bg); color: var(--positive); }
+    .badge-cancelled { background: #F3F4F6; color: var(--text-muted); }
+    .badge-rejected { background: var(--negative-bg); color: var(--negative); }
+    .badge-open { background: var(--primary-light); color: var(--primary); }
+    .badge-tag { background: #E2E8F0; color: #475569; font-size: 10px; }
+
+    .hidden { display: none !important; }
+
+    /* ==========================================================================
+       LAYOUT CONTAINER STRUCTURE
+       ========================================================================== */
+    .app-container {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar (Desktop Only) */
+    .desktop-sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-card);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+    }
+
+    .brand-container {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .logo-box {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #FFF;
+      font-weight: 800;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 2px 8px rgba(56, 126, 209, 0.3);
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      color: var(--text-main);
+    }
+
+    .brand-subtitle {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 16px 12px;
+      flex: 1;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .sidebar-item:hover {
+      background-color: var(--bg-body);
+      color: var(--primary);
+    }
+
+    .sidebar-item.active {
+      background-color: var(--primary-light);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .sidebar-item svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* Main Area */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Desktop Header */
+    .desktop-header {
+      height: var(--header-height);
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 10;
+    }
+
+    .ticker-bar {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .ticker-item {
+      display: flex;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .ticker-name {
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .virtual-balance-chip {
+      background: var(--bg-body);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: calc(var(--bottom-nav-height) + 16px);
+      background: var(--bg-body);
+    }
+
+    /* Mobile Header */
+    .mobile-header {
+      height: var(--header-height);
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      position: sticky;
+      top: 0;
+      z-index: 15;
+    }
+
+    .mobile-header-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    /* Mobile Fixed Bottom Nav */
+    .mobile-bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--bottom-nav-height);
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 30;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      height: 100%;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+      margin-bottom: 3px;
+    }
+
+    /* Responsive Views Control */
+    @media (min-width: 1025px) {
+      .mobile-bottom-nav { display: none !important; }
+      .mobile-header { display: none !important; }
+      .content-area { padding-bottom: 24px; }
+      .desktop-only { display: flex !important; }
+      .desktop-grid { display: grid !important; }
+    }
+
+    @media (max-width: 1024px) {
+      .desktop-sidebar { display: none !important; }
+      .desktop-header { display: none !important; }
+      .desktop-grid { display: block !important; }
+    }
+
+    /* ==========================================================================
+       COMMON UI COMPONENTS
+       ========================================================================== */
+    /* Category / Filter Horizontal Scroll Tabs */
+    .tabs-wrapper {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      overflow-x: auto;
+      white-space: nowrap;
+      display: flex;
+      padding: 0 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tabs-wrapper::-webkit-scrollbar { display: none; }
+
+    .tab-item {
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-item.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* Search & Filter Toolbar */
+    .search-toolbar {
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .search-input-group {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input-group svg {
+      position: absolute;
+      left: 12px;
+      width: 18px;
+      height: 18px;
+      fill: var(--text-light);
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg-body);
+      border: 1px solid var(--border-color);
+      padding: 10px 12px 10px 38px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--text-main);
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+      background: #FFF;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-muted);
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-body);
+      color: var(--primary);
+    }
+
+    .count-indicator {
+      font-size: 11px;
+      color: var(--text-light);
+      padding: 0 4px;
+    }
+
+    /* ==========================================================================
+       1. WATCHLIST SCREEN
+       ========================================================================== */
+    .stock-list {
+      list-style: none;
+      background: var(--bg-card);
+    }
+
+    .stock-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-light);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .stock-row:hover {
+      background-color: var(--primary-light);
+    }
+
+    .stock-symbol {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stock-exchange {
+      font-size: 10px;
+      color: var(--text-light);
+      font-weight: 500;
+      background: var(--bg-body);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    .stock-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .stock-price-col {
+      text-align: right;
+    }
+
+    .stock-ltp {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .stock-change {
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    /* Desktop Watchlist Split Layout */
+    .desktop-trading-split {
+      display: grid;
+      grid-template-columns: 380px 1flex;
+      height: calc(100vh - var(--header-height));
+    }
+
+    .desktop-left-pane {
+      border-right: 1px solid var(--border-color);
+      background: var(--bg-card);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .desktop-right-pane {
+      background: var(--bg-body);
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ==========================================================================
+       TRADING CHART & DETAIL PANEL (DESKTOP / MOBILE SHEET)
+       ========================================================================== */
+    .stock-detail-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chart-container {
+      width: 100%;
+      height: 280px;
+      position: relative;
+      margin-top: 15px;
+    }
+
+    .chart-timeframes {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tf-btn {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--bg-body);
+      color: var(--text-muted);
+    }
+
+    .tf-btn.active {
+      background: var(--primary);
+      color: #FFF;
+    }
+
+    /* ==========================================================================
+       2. ORDERS SCREEN
+       ========================================================================== */
+    .order-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin: 12px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .order-type-badge {
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .bg-buy { background: rgba(0, 179, 134, 0.12); color: var(--positive); }
+    .bg-sell { background: rgba(223, 81, 76, 0.12); color: var(--negative); }
+
+    .order-symbol {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .order-time {
+      font-size: 11px;
+      color: var(--text-light);
+    }
+
+    .order-details-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1flex);
+      gap: 8px;
+      font-size: 12px;
+      border-top: 1px dashed var(--border-color);
+      padding-top: 10px;
+      margin-top: 8px;
+    }
+
+    .order-detail-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .order-detail-label {
+      color: var(--text-light);
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    .order-detail-val {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* ==========================================================================
+       3. PORTFOLIO SCREEN
+       ========================================================================== */
+    .portfolio-summary-card {
+      background: linear-gradient(135deg, #1E293B, #0F172A);
+      color: #FFF;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      margin: 16px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .summary-label {
+      font-size: 12px;
+      color: #94A3B8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .summary-pnl-val {
+      font-size: 26px;
+      font-weight: 800;
+      margin: 4px 0 12px 0;
+    }
+
+    .summary-metrics {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 12px;
+      font-size: 12px;
+    }
+
+    .portfolio-row {
+      background: var(--bg-card);
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ==========================================================================
+       4. BIDS / IPO SCREEN
+       ========================================================================== */
+    .ipo-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin: 12px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .ipo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .ipo-title {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .ipo-dates {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .ipo-price-range {
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 12px;
+      color: var(--primary-dark);
+    }
+
+    .ipo-action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .btn-apply {
+      background: var(--primary);
+      color: #FFF;
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .btn-apply.closed {
+      background: #E2E8F0;
+      color: #94A3B8;
+      cursor: not-allowed;
+    }
+
+    /* ==========================================================================
+       5. ACCOUNT SCREEN
+       ========================================================================== */
+    .account-profile-card {
+      background: var(--bg-card);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .avatar-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--primary);
+    }
+
+    .menu-group {
+      background: var(--bg-card);
+      margin-top: 12px;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-light);
+      cursor: pointer;
+    }
+
+    .menu-item:last-child { border-bottom: none; }
+
+    .menu-item-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-weight: 500;
+    }
+
+    .menu-item-left svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--text-muted);
+    }
+
+    /* Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #CBD5E1;
+      transition: .3s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* ==========================================================================
+       MODALS & BOTTOM SHEETS
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 50;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-sheet {
+      background: var(--bg-card);
+      width: 100%;
+      max-width: 500px;
+      border-top-left-radius: var(--radius-lg);
+      border-top-right-radius: var(--radius-lg);
+      padding: 20px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.active .bottom-sheet {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: #D1D5DB;
+      border-radius: 2px;
+      margin: 0 auto 16px auto;
+    }
+
+    /* Order Form Styling */
+    .order-toggle-group {
+      display: flex;
+      background: var(--bg-body);
+      padding: 3px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+    }
+
+    .order-toggle-btn {
+      flex: 1;
+      padding: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-muted);
+    }
+
+    .order-toggle-btn.buy-active {
+      background: var(--positive);
+      color: #FFF;
+    }
+
+    .order-toggle-btn.sell-active {
+      background: var(--negative);
+      color: #FFF;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .form-group {
+      flex: 1;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .form-input {
+      width: 100%;
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .order-summary-box {
+      background: var(--bg-body);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .btn-submit-order {
+      width: 100%;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 15px;
+      color: #FFF;
+      margin-top: 16px;
+    }
+
+    .btn-buy { background: var(--positive); }
+    .btn-buy:hover { background: #009A73; }
+    .btn-sell { background: var(--negative); }
+    .btn-sell:hover { background: #C9423D; }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #1E293B;
+      color: #FFF;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 100;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(-50px);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- ==========================================================================
+         DESKTOP SIDEBAR NAVIGATION
+         ========================================================================== -->
+    <aside class="desktop-sidebar">
+      <div class="brand-container">
+        <div class="logo-box">TX</div>
+        <div>
+          <div class="brand-title">TRADEX</div>
+          <div class="brand-subtitle">Paper Trading</div>
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li class="sidebar-item active" onclick="switchTab('watchlist')">
+          <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+          Watchlist
+        </li>
+        <li class="sidebar-item" onclick="switchTab('orders')">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+          Orders
+        </li>
+        <li class="sidebar-item" onclick="switchTab('portfolio')">
+          <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+          Portfolio
+        </li>
+        <li class="sidebar-item" onclick="switchTab('bids')">
+          <svg viewBox="0 0 24 24"><path d="M4 10h3v7H4zM10.5 3h3v14h-3zM17 14h3v3h-3z"/></svg>
+          Bids / IPO
+        </li>
+        <li class="sidebar-item" onclick="switchTab('account')">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          Account
+        </li>
+      </ul>
+    </aside>
+
+    <!-- ==========================================================================
+         MAIN CONTENT AREA
+         ========================================================================== -->
+    <div class="main-wrapper">
+
+      <!-- DESKTOP TOP HEADER -->
+      <header class="desktop-header">
+        <div class="ticker-bar">
+          <div class="ticker-item">
+            <span class="ticker-name">NIFTY 50</span>
+            <span class="stock-ltp">18,181.75</span>
+            <span class="neg">-104.75 (-0.57%)</span>
+          </div>
+          <div class="ticker-item">
+            <span class="ticker-name">BANK NIFTY</span>
+            <span class="stock-ltp">43,210.50</span>
+            <span class="pos">+142.30 (+0.33%)</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="virtual-balance-chip">
+            <span style="color: var(--text-muted); font-size: 11px; font-weight: 700;">VIRTUAL MARGIN:</span>
+            <span id="desktop-balance" class="pos">₹10,00,000.00</span>
+          </div>
+          <button class="icon-btn" onclick="openFundsModal()" title="Add Virtual Funds">
+            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- MOBILE HEADER -->
+      <header class="mobile-header">
+        <div class="brand-container" style="padding: 0; border: none;">
+          <div class="logo-box" style="width: 28px; height: 28px; font-size: 14px;">TX</div>
+          <div class="mobile-header-title" id="mobile-page-title">Watchlist</div>
+        </div>
+        <div class="virtual-balance-chip" style="font-size: 11px; padding: 4px 10px;">
+          <span id="mobile-balance" class="pos">₹10L</span>
+        </div>
+      </header>
+
+      <!-- MAIN SCROLLABLE CONTENT VIEW -->
+      <main class="content-area" id="main-content">
+
+        <!-- ===================================================================
+             1. WATCHLIST VIEW
+             =================================================================== -->
+        <section id="view-watchlist">
+          <div class="tabs-wrapper" id="watchlist-tabs">
+            <div class="tab-item active" onclick="filterWatchlistTab('Nifty 50', this)">Nifty 50</div>
+            <div class="tab-item" onclick="filterWatchlistTab('My Stocks', this)">My Stocks</div>
+            <div class="tab-item" onclick="filterWatchlistTab('Bank Stocks', this)">Bank Stocks</div>
+            <div class="tab-item" onclick="filterWatchlistTab('IT Stocks', this)">IT Stocks</div>
+            <div class="tab-item" onclick="filterWatchlistTab('Favorites', this)">Favorites</div>
+          </div>
+
+          <div class="search-toolbar">
+            <div class="search-input-group">
+              <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+              <input type="text" id="watchlist-search" class="search-input" placeholder="Search & add (e.g. RELIANCE, INFY)" oninput="handleSearch(this.value)">
+            </div>
+            <span class="count-indicator" id="watchlist-count">15/250</span>
+          </div>
+
+          <!-- DESKTOP SPLIT CONTAINER -->
+          <div id="watchlist-split-container">
+            <ul class="stock-list" id="stock-list-container">
+              <!-- Dynamically Populated Stock Rows -->
+            </ul>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             2. ORDERS VIEW
+             =================================================================== -->
+        <section id="view-orders" class="hidden">
+          <div class="tabs-wrapper">
+            <div class="tab-item active" onclick="filterOrders('ALL', this)">All <span class="badge badge-tag" id="cnt-all">0</span></div>
+            <div class="tab-item" onclick="filterOrders('OPEN', this)">Open <span class="badge badge-tag" id="cnt-open">0</span></div>
+            <div class="tab-item" onclick="filterOrders('COMPLETE', this)">Executed <span class="badge badge-tag" id="cnt-executed">0</span></div>
+            <div class="tab-item" onclick="filterOrders('CANCELLED', this)">Cancelled <span class="badge badge-tag" id="cnt-cancelled">0</span></div>
+          </div>
+
+          <div id="orders-list-container">
+            <!-- Dynamically Populated Orders -->
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             3. PORTFOLIO VIEW
+             =================================================================== -->
+        <section id="view-portfolio" class="hidden">
+          <div class="tabs-wrapper">
+            <div class="tab-item active" onclick="switchPortfolioTab('holdings', this)">Holdings</div>
+            <div class="tab-item" onclick="switchPortfolioTab('positions', this)">Positions</div>
+          </div>
+
+          <div class="portfolio-summary-card">
+            <div class="summary-label">Total P&L (Unrealized)</div>
+            <div class="summary-pnl-val pos" id="portfolio-total-pnl">+₹12,450.75</div>
+            <div class="summary-metrics">
+              <div>Current Value: <strong id="portfolio-current-val">₹3,45,200.00</strong></div>
+              <div>Invested: <strong id="portfolio-invested-val">₹3,32,749.25</strong></div>
+            </div>
+          </div>
+
+          <div id="portfolio-list-container">
+            <!-- Dynamically Populated Holdings / Positions -->
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             4. BIDS / IPO VIEW
+             =================================================================== -->
+        <section id="view-bids" class="hidden">
+          <div class="tabs-wrapper">
+            <div class="tab-item active">IPO</div>
+            <div class="tab-item">Government Securities</div>
+            <div class="tab-item">Auctions</div>
+          </div>
+
+          <div class="tabs-wrapper" style="background: var(--bg-body); border-bottom: 1px solid var(--border-color);">
+            <div class="tab-item active" style="font-size: 12px; padding: 8px 14px;">Ongoing</div>
+            <div class="tab-item" style="font-size: 12px; padding: 8px 14px;">Applied</div>
+            <div class="tab-item" style="font-size: 12px; padding: 8px 14px;">Upcoming</div>
+          </div>
+
+          <div id="ipo-list-container">
+            <!-- Dynamically Populated IPO Cards -->
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             5. ACCOUNT VIEW
+             =================================================================== -->
+        <section id="view-account" class="hidden">
+          <div class="account-profile-card">
+            <div class="avatar-circle">TU</div>
+            <div>
+              <div style="font-weight: 700; font-size: 16px;">TRADEX DEMO USER</div>
+              <div style="font-size: 12px; color: var(--text-muted);">demo@tradex.com • Client ID: TX90821</div>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <div class="menu-item" onclick="openFundsModal()">
+              <div class="menu-item-left">
+                <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                Funds & Virtual Margin
+              </div>
+              <span id="account-funds-val" class="pos" style="font-weight: 600;">₹10,00,000.00</span>
+            </div>
+
+            <div class="menu-item">
+              <div class="menu-item-left">
+                <svg viewBox="0 0 24 24"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27z"/></svg>
+                Privacy Mode
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="privacy-toggle" onchange="togglePrivacyMode(this.checked)">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <div class="menu-item" onclick="showToast('Profile modal opened')">
+              <div class="menu-item-left">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                Profile & Settings
+              </div>
+              <span style="color: var(--text-light);">&rsaquo;</span>
+            </div>
+            <div class="menu-item" onclick="showToast('App Code verified')">
+              <div class="menu-item-left">
+                <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                App Security Code
+              </div>
+              <span style="color: var(--text-light);">&rsaquo;</span>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <div class="menu-item" onclick="confirmLogout()" style="color: var(--negative);">
+              <div class="menu-item-left">
+                <svg viewBox="0 0 24 24" style="fill: var(--negative);"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                Log Out
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- ==========================================================================
+           MOBILE FIXED BOTTOM NAVIGATION
+           ========================================================================== -->
+      <nav class="mobile-bottom-nav">
+        <div class="nav-item active" id="nav-watchlist" onclick="switchTab('watchlist')">
+          <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+          Watchlist
+        </div>
+        <div class="nav-item" id="nav-orders" onclick="switchTab('orders')">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+          Orders
+        </div>
+        <div class="nav-item" id="nav-portfolio" onclick="switchTab('portfolio')">
+          <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+          Portfolio
+        </div>
+        <div class="nav-item" id="nav-bids" onclick="switchTab('bids')">
+          <svg viewBox="0 0 24 24"><path d="M4 10h3v7H4zM10.5 3h3v14h-3zM17 14h3v3h-3z"/></svg>
+          Bids
+        </div>
+        <div class="nav-item" id="nav-account" onclick="switchTab('account')">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          Account
+        </div>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODALS & BOTTOM SHEETS
+       ========================================================================== -->
+  
+  <!-- STOCK DETAIL / ORDER DRAWER SHEET -->
+  <div class="modal-overlay" id="order-modal-overlay">
+    <div class="bottom-sheet">
+      <div class="sheet-handle"></div>
+      
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+        <div>
+          <h3 id="modal-stock-symbol" style="font-size: 18px; font-weight: 700;">RELIANCE</h3>
+          <span style="font-size: 11px; color: var(--text-muted);">NSE • EQ</span>
+        </div>
+        <div style="text-align: right;">
+          <div id="modal-stock-price" style="font-weight: 700; font-size: 18px;">₹1,420.50</div>
+          <div id="modal-stock-change" class="pos" style="font-size: 12px;">+12.40 (+0.88%)</div>
+        </div>
+      </div>
+
+      <!-- CHART AREA -->
+      <div style="background: var(--bg-body); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 16px;">
+        <div class="chart-timeframes">
+          <button class="tf-btn active" onclick="updateChartTimeframe('1D', this)">1D</button>
+          <button class="tf-btn" onclick="updateChartTimeframe('1W', this)">1W</button>
+          <button class="tf-btn" onclick="updateChartTimeframe('1M', this)">1M</button>
+          <button class="tf-btn" onclick="updateChartTimeframe('1Y', this)">1Y</button>
+        </div>
+        <canvas id="stockCanvasChart" height="150" style="width: 100%; display: block;"></canvas>
+      </div>
+
+      <!-- BUY / SELL TOGGLE -->
+      <div class="order-toggle-group">
+        <button class="order-toggle-btn buy-active" id="btn-mode-buy" onclick="setOrderMode('BUY')">BUY</button>
+        <button class="order-toggle-btn" id="btn-mode-sell" onclick="setOrderMode('SELL')">SELL</button>
+      </div>
+
+      <!-- ORDER INPUT FORM -->
+      <form onsubmit="executeOrder(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Product</label>
+            <select class="form-input" id="order-product">
+              <option value="CNC">CNC (Delivery)</option>
+              <option value="MIS">MIS (Intraday)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select class="form-input" id="order-type" onchange="toggleLimitPrice(this.value)">
+              <option value="MARKET">MARKET</option>
+              <option value="LIMIT">LIMIT</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Quantity</label>
+            <input type="number" class="form-input" id="order-qty" value="10" min="1" oninput="recalculateOrderEst()">
+          </div>
+          <div class="form-group">
+            <label>Limit Price</label>
+            <input type="number" class="form-input" id="order-limit-price" value="1420.50" step="0.05" disabled>
+          </div>
+        </div>
+
+        <div class="order-summary-box">
+          <span>Estimated Value</span>
+          <strong id="order-est-val">₹14,205.00</strong>
+        </div>
+
+        <button type="submit" class="btn-submit-order btn-buy" id="btn-order-submit">VIRTUAL BUY</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- FUNDS MODAL -->
+  <div class="modal-overlay" id="funds-modal-overlay">
+    <div class="bottom-sheet">
+      <div class="sheet-handle"></div>
+      <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">Virtual Paper Funds</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Add demo paper capital to test your trading strategies with zero risk.</p>
+      
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label>Add Margin Amount (₹)</label>
+        <input type="number" class="form-input" id="funds-add-input" value="50000" step="10000">
+      </div>
+
+      <button class="btn-submit-order btn-buy" onclick="addPaperFunds()">+ Add Virtual Cash</button>
+      <button class="btn-submit-order" style="background: var(--bg-body); color: var(--text-main); margin-top: 8px;" onclick="closeFundsModal()">Close</button>
+    </div>
+  </div>
+
+  <!-- TOAST ALERTS -->
+  <div class="toast" id="toast-alert">
+    <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: var(--positive);"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+    <span id="toast-message">Order Executed Successfully!</span>
+  </div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT APPLICATION LOGIC
+       ========================================================================== -->
+  <script>
+    /* ==========================================================================
+       1. STATE & MOCK DATABASE
+       ========================================================================== */
+    const state = {
+      virtualBalance: 1000000.00,
+      privacyMode: false,
+      activeView: 'watchlist',
+      activeWatchlistTab: 'Nifty 50',
+      selectedStock: null,
+      orderMode: 'BUY',
+      
+      stocks: [
+        { symbol: "RELIANCE", exchange: "NSE", name: "Reliance Industries Ltd", ltp: 1420.50, change: 12.40, changePercent: 0.88, category: ["Nifty 50", "My Stocks", "Favorites"] },
+        { symbol: "TCS", exchange: "NSE", name: "Tata Consultancy Services", ltp: 3215.20, change: -18.30, changePercent: -0.57, category: ["Nifty 50", "IT Stocks", "Favorites"] },
+        { symbol: "INFY", exchange: "NSE", name: "Infosys Limited", ltp: 1540.10, change: 21.50, changePercent: 1.42, category: ["Nifty 50", "IT Stocks", "My Stocks"] },
+        { symbol: "HDFCBANK", exchange: "NSE", name: "HDFC Bank Limited", ltp: 1680.25, change: 8.40, changePercent: 0.50, category: ["Nifty 50", "Bank Stocks", "My Stocks"] },
+        { symbol: "ICICIBANK", exchange: "NSE", name: "ICICI Bank Limited", ltp: 1045.00, change: 14.20, changePercent: 1.38, category: ["Nifty 50", "Bank Stocks"] },
+        { symbol: "SBIN", exchange: "NSE", name: "State Bank of India", ltp: 750.80, change: -5.40, changePercent: -0.71, category: ["Nifty 50", "Bank Stocks"] },
+        { symbol: "ITC", exchange: "NSE", name: "ITC Limited", ltp: 435.50, change: 2.10, changePercent: 0.48, category: ["Nifty 50"] },
+        { symbol: "LT", exchange: "NSE", name: "Larsen & Toubro Ltd", ltp: 3450.00, change: 42.00, changePercent: 1.23, category: ["Nifty 50"] },
+        { symbol: "Deepak", exchange: "NSE", name: "Deepak gahlot", ltp: 1180.00, change: -12.50, changePercent: -1.05, category: ["Nifty 50"] },
+        { symbol: "ADANIENT", exchange: "NSE", name: "Adani Enterprises", ltp: 2850.00, change: -45.00, changePercent: -1.55, category: ["Nifty 50"] },
+        { symbol: "AXISBANK", exchange: "NSE", name: "Axis Bank Limited", ltp: 1090.00, change: 9.50, changePercent: 0.88, category: ["Nifty 50", "Bank Stocks"] },
+        { symbol: "MARUTI", exchange: "NSE", name: "Maruti Suzuki India", ltp: 12400.00, change: 150.00, changePercent: 1.22, category: ["Nifty 50"] },
+        { symbol: "SUNPHARMA", exchange: "NSE", name: "Sun Pharma Ltd", ltp: 1520.00, change: -11.00, changePercent: -0.72, category: ["Nifty 50"] },
+        { symbol: "TATAMOTORS", exchange: "NSE", name: "Tata Motors Ltd", ltp: 980.00, change: 18.50, changePercent: 1.92, category: ["Nifty 50", "My Stocks"] },
+        { symbol: "WIPRO", exchange: "NSE", name: "Wipro Limited", ltp: 460.00, change: -3.20, changePercent: -0.69, category: ["Nifty 50", "IT Stocks"] }
+      ],
+
+      orders: [
+        { id: "ORD-9821", symbol: "INFY", type: "BUY", status: "COMPLETE", qty: 1, avgPrice: 1540.25, time: "13:37:34", product: "CNC", orderType: "MARKET" },
+        { id: "ORD-9820", symbol: "RELIANCE", type: "SELL", status: "CANCELLED", qty: 1, avgPrice: 1420.50, time: "13:39:08", product: "CNC", orderType: "LIMIT" },
+        { id: "ORD-9819", symbol: "TCS", type: "BUY", status: "REJECTED", qty: 10, avgPrice: 3215.20, time: "12:15:00", product: "MIS", orderType: "MARKET" }
+      ],
+
+      holdings: [
+        { symbol: "RELIANCE", qty: 10, avgPrice: 1405.20, ltp: 1420.50, pnl: 153.00, type: "CNC" },
+        { symbol: "TCS", qty: 5, avgPrice: 3250.00, ltp: 3215.20, pnl: -174.00, type: "CNC" }
+      ],
+
+      positions: [
+        { symbol: "INFY", qty: 15, avgPrice: 1530.00, ltp: 1540.10, pnl: 151.50, type: "MIS" }
+      ],
+
+      ipos: [
+        { name: "Nexus Select Trust", symbol: "NXST", priceRange: "₹95 - ₹100", dates: "9th - 11th May", status: "Ongoing" },
+        { name: "Innovative India Limited", symbol: "INNOKAIZ", tag: "SME", priceRange: "₹76 - ₹78", dates: "28th Apr - 3rd May", status: "CLOSED" },
+        { name: "Mankind Pharma Limited", symbol: "MANKIND", priceRange: "₹1026 - ₹1080", dates: "25th - 27th Apr", status: "CLOSED" }
+      ]
+    };
+
+    /* ==========================================================================
+       2. NAVIGATION & TAB SWITCHING
+       ========================================================================== */
+    function switchTab(viewName) {
+      state.activeView = viewName;
+
+      // Hide all section views
+      document.querySelectorAll("main > section").forEach(sec => sec.classList.add("hidden"));
+      document.getElementById(`view-${viewName}`).classList.remove("hidden");
+
+      // Update mobile nav highlight
+      document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+      const activeMobileNav = document.getElementById(`nav-${viewName}`);
+      if (activeMobileNav) activeMobileNav.classList.add("active");
+
+      // Update desktop sidebar highlight
+      document.querySelectorAll(".sidebar-item").forEach(item => item.classList.remove("active"));
+      const sidebarItems = document.querySelectorAll(".sidebar-item");
+      const indexMap = { watchlist: 0, orders: 1, portfolio: 2, bids: 3, account: 4 };
+      if (sidebarItems[indexMap[viewName]]) sidebarItems[indexMap[viewName]].classList.add("active");
+
+      // Update Header Title
+      const titles = { watchlist: "Watchlist", orders: "Orders", portfolio: "Portfolio", bids: "Bids / IPO", account: "Account" };
+      document.getElementById("mobile-page-title").textContent = titles[viewName];
+
+      // Refresh corresponding view data
+      if (viewName === 'watchlist') renderWatchlist();
+      if (viewName === 'orders') renderOrders();
+      if (viewName === 'portfolio') renderPortfolio();
+      if (viewName === 'bids') renderBids();
+    }
+
+    /* ==========================================================================
+       3. WATCHLIST COMPONENT
+       ========================================================================== */
+    function filterWatchlistTab(tabName, el) {
+      state.activeWatchlistTab = tabName;
+      document.querySelectorAll("#watchlist-tabs .tab-item").forEach(t => t.classList.remove("active"));
+      el.classList.add("active");
+      renderWatchlist();
+    }
+
+    function renderWatchlist(query = "") {
+      const container = document.getElementById("stock-list-container");
+      container.innerHTML = "";
+
+      let filtered = state.stocks.filter(s => {
+        const matchesTab = state.activeWatchlistTab === 'Nifty 50' || s.category.includes(state.activeWatchlistTab);
+        const matchesQuery = s.symbol.toLowerCase().includes(query.toLowerCase()) || s.name.toLowerCase().includes(query.toLowerCase());
+        return matchesTab && matchesQuery;
+      });
+
+      document.getElementById("watchlist-count").textContent = `${filtered.length}/${state.stocks.length}`;
+
+      filtered.forEach(stock => {
+        const isPos = stock.change >= 0;
+        const colorClass = isPos ? "pos" : "neg";
+        const sign = isPos ? "+" : "";
+
+        const li = document.createElement("li");
+        li.className = "stock-row";
+        li.onclick = () => openStockDetail(stock);
+        li.innerHTML = `
+          <div>
+            <div class="stock-symbol">${stock.symbol} <span class="stock-exchange">${stock.exchange}</span></div>
+            <div class="stock-sub">${stock.name}</div>
+          </div>
+          <div class="stock-price-col">
+            <div class="stock-ltp ${colorClass}">₹${formatCurrency(stock.ltp)}</div>
+            <div class="stock-change ${colorClass}">${sign}${stock.change.toFixed(2)} (${sign}${stock.changePercent.toFixed(2)}%)</div>
+          </div>
+        `;
+        container.appendChild(li);
+      });
+    }
+
+    function handleSearch(query) {
+      renderWatchlist(query);
+    }
+
+    /* ==========================================================================
+       4. STOCK DETAIL & CANVAS CHART MODAL
+       ========================================================================== */
+    function openStockDetail(stock) {
+      state.selectedStock = stock;
+      
+      document.getElementById("modal-stock-symbol").textContent = stock.symbol;
+      document.getElementById("modal-stock-price").textContent = `₹${formatCurrency(stock.ltp)}`;
+      
+      const changeEl = document.getElementById("modal-stock-change");
+      const isPos = stock.change >= 0;
+      changeEl.className = isPos ? "pos" : "neg";
+      changeEl.textContent = `${isPos ? '+' : ''}${stock.change.toFixed(2)} (${isPos ? '+' : ''}${stock.changePercent.toFixed(2)}%)`;
+
+      document.getElementById("order-limit-price").value = stock.ltp.toFixed(2);
+      recalculateOrderEst();
+
+      // Open Modal
+      document.getElementById("order-modal-overlay").classList.add("active");
+      
+      // Draw Chart
+      drawCanvasChart();
+    }
+
+    function closeStockModal() {
+      document.getElementById("order-modal-overlay").classList.remove("active");
+    }
+
+    function setOrderMode(mode) {
+      state.orderMode = mode;
+      const buyBtn = document.getElementById("btn-mode-buy");
+      const sellBtn = document.getElementById("btn-mode-sell");
+      const submitBtn = document.getElementById("btn-order-submit");
+
+      if (mode === 'BUY') {
+        buyBtn.className = "order-toggle-btn buy-active";
+        sellBtn.className = "order-toggle-btn";
+        submitBtn.className = "btn-submit-order btn-buy";
+        submitBtn.textContent = "VIRTUAL BUY";
+      } else {
+        buyBtn.className = "order-toggle-btn";
+        sellBtn.className = "order-toggle-btn sell-active";
+        submitBtn.className = "btn-submit-order btn-sell";
+        submitBtn.textContent = "VIRTUAL SELL";
+      }
+    }
+
+    function toggleLimitPrice(type) {
+      const priceInput = document.getElementById("order-limit-price");
+      priceInput.disabled = (type === "MARKET");
+    }
+
+    function recalculateOrderEst() {
+      if (!state.selectedStock) return;
+      const qty = parseInt(document.getElementById("order-qty").value) || 1;
+      const price = state.selectedStock.ltp;
+      const total = qty * price;
+      document.getElementById("order-est-val").textContent = `₹${formatCurrency(total)}`;
+    }
+
+    function updateChartTimeframe(tf, btn) {
+      document.querySelectorAll(".tf-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      drawCanvasChart();
+    }
+
+    function drawCanvasChart() {
+      const canvas = document.getElementById("stockCanvasChart");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = 150;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Generate realistic price curve path
+      const points = 30;
+      const isPos = state.selectedStock ? state.selectedStock.change >= 0 : true;
+      const lineColor = isPos ? "#00B386" : "#DF514C";
+
+      ctx.beginPath();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = lineColor;
+
+      let prevY = canvas.height / 2;
+      ctx.moveTo(0, prevY);
+
+      for (let i = 1; i <= points; i++) {
+        const x = (canvas.width / points) * i;
+        const delta = (Math.random() - 0.48) * 18;
+        const y = Math.min(Math.max(prevY + delta, 20), canvas.height - 20);
+        ctx.lineTo(x, y);
+        prevY = y;
+      }
+      ctx.stroke();
+
+      // Draw Gradient Fill under line
+      ctx.lineTo(canvas.width, canvas.height);
+      ctx.lineTo(0, canvas.height);
+      ctx.closePath();
+      
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, isPos ? "rgba(0, 179, 134, 0.2)" : "rgba(223, 81, 76, 0.2)");
+      grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    /* ==========================================================================
+       5. ORDER EXECUTION & ORDERS VIEW
+       ========================================================================== */
+    function executeOrder(e) {
+      e.preventDefault();
+      if (!state.selectedStock) return;
+
+      const qty = parseInt(document.getElementById("order-qty").value) || 1;
+      const product = document.getElementById("order-product").value;
+      const type = document.getElementById("order-type").value;
+      const price = state.selectedStock.ltp;
+      const totalCost = qty * price;
+
+      if (state.orderMode === 'BUY' && totalCost > state.virtualBalance) {
+        showToast("Insufficient Virtual Margin!", true);
+        return;
+      }
+
+      // Deduct or add paper balance
+      if (state.orderMode === 'BUY') {
+        state.virtualBalance -= totalCost;
+      } else {
+        state.virtualBalance += totalCost;
+      }
+      updateBalanceDisplay();
+
+      // Record Order
+      const newOrder = {
+        id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+        symbol: state.selectedStock.symbol,
+        type: state.orderMode,
+        status: "COMPLETE",
+        qty: qty,
+        avgPrice: price,
+        time: new Date().toLocaleTimeString(),
+        product: product,
+        orderType: type
+      };
+      state.orders.unshift(newOrder);
+
+      // Add to Portfolio Holdings
+      const existingHolding = state.holdings.find(h => h.symbol === state.selectedStock.symbol);
+      if (existingHolding) {
+        if (state.orderMode === 'BUY') existingHolding.qty += qty;
+        else existingHolding.qty = Math.max(0, existingHolding.qty - qty);
+      } else if (state.orderMode === 'BUY') {
+        state.holdings.push({
+          symbol: state.selectedStock.symbol,
+          qty: qty,
+          avgPrice: price,
+          ltp: price,
+          pnl: 0.00,
+          type: product
+        });
+      }
+
+      closeStockModal();
+      showToast(`Virtual ${state.orderMode} order for ${qty}x ${state.selectedStock.symbol} executed!`);
+    }
+
+    function filterOrders(filter, el) {
+      if (el) {
+        document.querySelectorAll("#view-orders .tab-item").forEach(t => t.classList.remove("active"));
+        el.classList.add("active");
+      }
+      renderOrders(filter);
+    }
+
+    function renderOrders(filter = 'ALL') {
+      const container = document.getElementById("orders-list-container");
+      container.innerHTML = "";
+
+      let filtered = state.orders;
+      if (filter !== 'ALL') {
+        filtered = state.orders.filter(o => o.status === filter);
+      }
+
+      // Update badge counts
+      document.getElementById("cnt-all").textContent = state.orders.length;
+      document.getElementById("cnt-open").textContent = state.orders.filter(o => o.status === 'OPEN').length;
+      document.getElementById("cnt-executed").textContent = state.orders.filter(o => o.status === 'COMPLETE').length;
+      document.getElementById("cnt-cancelled").textContent = state.orders.filter(o => o.status === 'CANCELLED').length;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-muted);">No orders found</div>`;
+        return;
+      }
+
+      filtered.forEach(order => {
+        const badgeClass = `badge-${order.status.toLowerCase()}`;
+        const typeBg = order.type === 'BUY' ? 'bg-buy' : 'bg-sell';
+
+        const card = document.createElement("div");
+        card.className = "order-card";
+        card.innerHTML = `
+          <div class="order-header">
+            <div>
+              <span class="order-type-badge ${typeBg}">${order.type} ${order.qty}/${order.qty}</span>
+              <span class="order-symbol" style="margin-left: 8px;">${order.symbol}</span>
+              <span style="font-size: 10px; color: var(--text-light);">NSE</span>
+            </div>
+            <span class="badge ${badgeClass}">${order.status}</span>
+          </div>
+          <div class="order-details-grid">
+            <div class="order-detail-item">
+              <span class="order-detail-label">Avg. Price</span>
+              <span class="order-detail-val">₹${formatCurrency(order.avgPrice)}</span>
+            </div>
+            <div class="order-detail-item">
+              <span class="order-detail-label">Product</span>
+              <span class="order-detail-val">${order.product}</span>
+            </div>
+            <div class="order-detail-item">
+              <span class="order-detail-label">Time</span>
+              <span class="order-detail-val">${order.time}</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    /* ==========================================================================
+       6. PORTFOLIO COMPONENT
+       ========================================================================== */
+    function switchPortfolioTab(tab, el) {
+      document.querySelectorAll("#view-portfolio .tab-item").forEach(t => t.classList.remove("active"));
+      el.classList.add("active");
+      renderPortfolio(tab);
+    }
+
+    function renderPortfolio(type = 'holdings') {
+      const container = document.getElementById("portfolio-list-container");
+      container.innerHTML = "";
+
+      const items = type === 'holdings' ? state.holdings : state.positions;
+
+      let totalPnl = 0;
+      let totalCurrent = 0;
+      let totalInvested = 0;
+
+      items.forEach(item => {
+        const currentVal = item.qty * item.ltp;
+        const investedVal = item.qty * item.avgPrice;
+        const pnl = currentVal - investedVal;
+
+        totalPnl += pnl;
+        totalCurrent += currentVal;
+        totalInvested += investedVal;
+
+        const isPos = pnl >= 0;
+        const pnlClass = isPos ? "pos" : "neg";
+
+        const row = document.createElement("div");
+        row.className = "portfolio-row";
+        row.innerHTML = `
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">${item.symbol} <span class="badge badge-tag">${item.type}</span></div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Qty: ${item.qty} • Avg: ₹${formatCurrency(item.avgPrice)}</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 600;">₹${formatCurrency(item.ltp)}</div>
+            <div class="${pnlClass}" style="font-size: 12px; font-weight: 600; margin-top: 2px;">
+              ${isPos ? '+' : ''}₹${formatCurrency(pnl)}
+            </div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+
+      // Update Summary Card
+      const pnlEl = document.getElementById("portfolio-total-pnl");
+      pnlEl.className = `summary-pnl-val ${totalPnl >= 0 ? 'pos' : 'neg'}`;
+      pnlEl.textContent = `${totalPnl >= 0 ? '+' : ''}₹${formatCurrency(totalPnl)}`;
+      
+      document.getElementById("portfolio-current-val").textContent = `₹${formatCurrency(totalCurrent)}`;
+      document.getElementById("portfolio-invested-val").textContent = `₹${formatCurrency(totalInvested)}`;
+    }
+
+    /* ==========================================================================
+       7. BIDS / IPO COMPONENT
+       ========================================================================== */
+    function renderBids() {
+      const container = document.getElementById("ipo-list-container");
+      container.innerHTML = "";
+
+      state.ipos.forEach(ipo => {
+        const card = document.createElement("div");
+        card.className = "ipo-card";
+        card.innerHTML = `
+          <div class="ipo-header">
+            <div>
+              <div class="ipo-title">${ipo.name} ${ipo.tag ? `<span class="badge badge-tag">${ipo.tag}</span>` : ''}</div>
+              <div class="ipo-dates">${ipo.dates}</div>
+            </div>
+            <span class="badge ${ipo.status === 'Ongoing' ? 'badge-complete' : 'badge-cancelled'}">${ipo.status}</span>
+          </div>
+          <div class="ipo-price-range">${ipo.priceRange}</div>
+          <div class="ipo-action-bar">
+            <span style="font-size: 11px; color: var(--text-muted);">Min Quantity: 1 Lot</span>
+            <button class="btn-apply ${ipo.status === 'CLOSED' ? 'closed' : ''}" onclick="applyIPO('${ipo.name}', '${ipo.status}')">
+              ${ipo.status === 'Ongoing' ? 'Apply' : 'Closed'}
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function applyIPO(name, status) {
+      if (status === 'CLOSED') {
+        showToast("This IPO is closed for bidding", true);
+        return;
+      }
+      showToast(`Application submitted for ${name}`);
+    }
+
+    /* ==========================================================================
+       8. UTILITIES, PRIVACY MODE & FUNDS
+       ========================================================================== */
+    function togglePrivacyMode(enabled) {
+      state.privacyMode = enabled;
+      updateBalanceDisplay();
+      if (state.activeView === 'portfolio') renderPortfolio();
+      showToast(enabled ? "Privacy Mode Enabled" : "Privacy Mode Disabled");
+    }
+
+    function formatCurrency(val) {
+      if (state.privacyMode) return "••••••";
+      return val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function updateBalanceDisplay() {
+      const formatted = `₹${formatCurrency(state.virtualBalance)}`;
+      document.getElementById("desktop-balance").textContent = formatted;
+      document.getElementById("account-funds-val").textContent = formatted;
+      document.getElementById("mobile-balance").textContent = state.privacyMode ? "••••" : `₹${(state.virtualBalance/100000).toFixed(1)}L`;
+    }
+
+    function openFundsModal() {
+      document.getElementById("funds-modal-overlay").classList.add("active");
+    }
+
+    function closeFundsModal() {
+      document.getElementById("funds-modal-overlay").classList.remove("active");
+    }
+
+    function addPaperFunds() {
+      const amt = parseFloat(document.getElementById("funds-add-input").value) || 0;
+      if (amt <= 0) return;
+      state.virtualBalance += amt;
+      updateBalanceDisplay();
+      closeFundsModal();
+      showToast(`Added ₹${amt.toLocaleString()} Virtual Cash`);
+    }
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById("toast-alert");
+      document.getElementById("toast-message").textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    function confirmLogout() {
+      if (confirm("Are you sure you want to log out of TRADEX Paper Trading?")) {
+        showToast("Logged out successfully");
+      }
+    }
+
+    // Modal sheet dismiss handling
+    document.querySelectorAll(".modal-overlay").forEach(overlay => {
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) {
+          overlay.classList.remove("active");
+        }
+      });
+    });
+
+    /* ==========================================================================
+       9. INITIALIZATION
+       ========================================================================== */
+    window.addEventListener("DOMContentLoaded", () => {
+      renderWatchlist();
+      updateBalanceDisplay();
+    });
+  </script>
+</body>
+</html>
